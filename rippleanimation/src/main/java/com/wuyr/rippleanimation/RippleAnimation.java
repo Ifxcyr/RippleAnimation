@@ -179,10 +179,19 @@ public class RippleAnimation extends View {
         if (mBackground != null && !mBackground.isRecycled()) {
             mBackground.recycle();
         }
-        mRootView.setDrawingCacheEnabled(true);
-        mBackground = mRootView.getDrawingCache();
-        mBackground = Bitmap.createBitmap(mBackground);
-        mRootView.setDrawingCacheEnabled(false);
+        mBackground = getBitmapFromView(mRootView);
+    }
+
+    /**
+     * 由canvas更新背景截图（drawingCache已废弃）
+     */
+    private static Bitmap getBitmapFromView(View view) {
+        view.measure(MeasureSpec.makeMeasureSpec(view.getLayoutParams().width, MeasureSpec.EXACTLY),
+                MeasureSpec.makeMeasureSpec(view.getLayoutParams().height, MeasureSpec.EXACTLY));
+        Bitmap bitmap = Bitmap.createBitmap(view.getWidth(), view.getHeight(), Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bitmap);
+        view.draw(canvas);
+        return bitmap;
     }
 
     /**
@@ -191,7 +200,7 @@ public class RippleAnimation extends View {
     private static float getAbsoluteX(View view) {
         float x = view.getX();
         ViewParent parent = view.getParent();
-        if (parent != null && parent instanceof View) {
+        if (parent instanceof View) {
             x += getAbsoluteX((View) parent);
         }
         return x;
@@ -203,7 +212,7 @@ public class RippleAnimation extends View {
     private static float getAbsoluteY(View view) {
         float y = view.getY();
         ViewParent parent = view.getParent();
-        if (parent != null && parent instanceof View) {
+        if (parent instanceof View) {
             y += getAbsoluteY((View) parent);
         }
         return y;
@@ -238,6 +247,7 @@ public class RippleAnimation extends View {
         return this;
     }
 
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         return true;
